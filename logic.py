@@ -12,6 +12,7 @@ indexSheets = ["2020_02", "2020_01", "2019_02", "2019_01", "2018_02", "2018_01",
 sheets = []
 dfs = []
 arrays = []
+list_career_levels = [[],[]]
 
 # Función encargada de convertir un vector de DataFrame a un vector de arreglos de numpy
 def convert_DataFrames_to_npArrays(dataFrames):
@@ -84,10 +85,27 @@ def is_content(v, array):
     except ValueError:
         return False
 
+# Determina si un estudiante es graduado por medio de su ubicacion semestral
+def is_graduate(doc, documents, programs, semesters):
+    pos = documents.index(doc)
+    pr = programs[pos]
+    lv = int(float(semesters[pos]))
+
+    if not is_content(pr, list_career_levels[0]):
+        return False
+
+    pos2 = list_career_levels[0].index(pr)
+    max_lv = list_career_levels[1][pos2]
+
+    if lv >= max_lv-1:
+        return True
+    else:
+        return False
+
 # Realiza la caracterizacion de los estudiantes: Activos, Ausentes y Desertores
 # Parametros: documents: listado de documentos del año analizado
 #             labels: registros de caracterización del año anterior
-def do_characterization(labels, documents):
+def do_characterization(labels, documents, programs, semesters, last_documents):
     result = [[],[]]
     for i in range(len(labels[0])):
         status = labels[0][i]
@@ -97,8 +115,12 @@ def do_characterization(labels, documents):
                 result[0].append('ACTIVO')
                 result[1].append(doc)
             else:
-                result[0].append('AUSENTE')
-                result[1].append(doc)
+                if is_graduate(doc, last_documents, programs, semesters):
+                    result[0].append('GRADUADO')
+                    result[1].append(doc)
+                else:
+                    result[0].append('AUSENTE')
+                    result[1].append(doc)
         elif status == 'AUSENTE':
             if is_content(doc, documents):
                 result[0].append('ACTIVO')
@@ -119,6 +141,23 @@ def do_characterization(labels, documents):
             result[1].append(doc)
     return result
 
+# Establece el nivel maximo de cada uno de los programas de la universidad
+def establish_max_level_career(career_levels, list_careers, list_levels):
+    for i in range(len(list_careers)):
+
+        if is_content(list_careers[i], career_levels[0]):
+
+            pos = career_levels[0].index(list_careers[i])
+            if int(float(list_levels[i])) > career_levels[1][pos]:
+                career_levels[1][pos] = int(float(list_levels[i]))
+
+        else:
+
+            career_levels[0].append(list_careers[i])
+            career_levels[1].append(int(float(list_levels[i])))
+    
+    return career_levels
+
 #############################################################################
 
 # Carga de los datos de la BD y conversion a un vector de DataFrame
@@ -132,7 +171,7 @@ arrays = convert_DataFrames_to_npArrays(dfs)
 for array in arrays:
     for i in range(len(array)):
         for j in range(len(array[0])):
-            array[i,j] = str(array[i,j]).replace('text:','').replace('\'','').replace(',','.')
+            array[i,j] = str(array[i,j]).replace('text:','').replace('\'','').replace(',','.').replace('number:', '')
 
 dfs = convert_npArrays_to_DataFrames(arrays)
 
@@ -175,12 +214,16 @@ for p in range(len(arrays)):
 
 dfs = convert_npArrays_to_DataFrames(arrays)
 
+# Determinar el nivel más alto de las carreras de la universidad
+for array in arrays:
+    list_career_levels = establish_max_level_career(list_career_levels, array[1:,11], array[1:,12])
+
 # Determinar estudiantes desertores de la universidad con respecto al año
 ### Año 2017_2
 labels_2017_2 = [[],[]]
 
-documents_2017_1 = arrays[7][1:,0]
-documents_2017_2 = arrays[6][1:,0]
+documents_2017_1 = arrays[7][1:,0].tolist()
+documents_2017_2 = arrays[6][1:,0].tolist()
 coincidences1 = np.intersect1d(documents_2017_1, documents_2017_2).tolist()
 
 for doc in documents_2017_2:
@@ -196,29 +239,44 @@ for doc in documents_2017_1:
         labels_2017_2[0].append('AUSENTE')
         labels_2017_2[1].append(doc)
 
+programs_2017_2 = arrays[4][1:,11].tolist()
+semi_annual_location_2017_2 = arrays[4][1:,12].tolist()
+
 ### Año 2018_1
 documents_2018_1 = arrays[5][1:,0].tolist()
-labels_2018_1 = do_characterization(labels_2017_2, documents_2018_1)
+programs_2018_1 = arrays[5][1:,11].tolist()
+semi_annual_location_2018_1 = arrays[5][1:,12].tolist()
+labels_2018_1 = do_characterization(labels_2017_2, documents_2018_1, programs_2017_2, semi_annual_location_2017_2, documents_2017_2)
 
 ### Año 2018_2
 documents_2018_2 = arrays[4][1:,0].tolist()
-labels_2018_2 = do_characterization(labels_2018_1, documents_2018_2)
+programs_2018_2 = arrays[4][1:,11].tolist()
+semi_annual_location_2018_2 = arrays[4][1:,12].tolist()
+labels_2018_2 = do_characterization(labels_2018_1, documents_2018_2, programs_2018_1, semi_annual_location_2018_1, documents_2018_1)
 
 ### Año 2019_1
 documents_2019_1 = arrays[3][1:,0].tolist()
-labels_2019_1 = do_characterization(labels_2018_2, documents_2019_1)
+programs_2019_1 = arrays[3][1:,11].tolist()
+semi_annual_location_2019_1 = arrays[3][1:,12].tolist()
+labels_2019_1 = do_characterization(labels_2018_2, documents_2019_1, programs_2018_2, semi_annual_location_2018_2, documents_2018_2)
 
 ### Año 2019_2
 documents_2019_2 = arrays[2][1:,0].tolist()
-labels_2019_2 = do_characterization(labels_2019_1, documents_2019_2)
+programs_2019_2 = arrays[2][1:,11].tolist()
+semi_annual_location_2019_2 = arrays[2][1:,12].tolist()
+labels_2019_2 = do_characterization(labels_2019_1, documents_2019_2, programs_2019_1, semi_annual_location_2019_1, documents_2019_1)
 
 ### Año 2020_1
 documents_2020_1 = arrays[1][1:,0].tolist()
-labels_2020_1 = do_characterization(labels_2019_2, documents_2020_1)
+programs_2020_1 = arrays[1][1:,11].tolist()
+semi_annual_location_2020_1 = arrays[1][1:,12].tolist()
+labels_2020_1 = do_characterization(labels_2019_2, documents_2020_1, programs_2019_2, semi_annual_location_2019_2, documents_2019_2)
 
 ### Año 2020_2
 documents_2020_2 = arrays[0][1:,0].tolist()
-labels_2020_2 = do_characterization(labels_2020_1, documents_2020_2)
+#programs_2020_2 = arrays[0][1:,11].tolist()
+#semi_annual_location_2020_2 = arrays[0][1:,12].tolist()
+labels_2020_2 = do_characterization(labels_2020_1, documents_2020_2, programs_2020_1, semi_annual_location_2020_1, documents_2020_1)
 
 
 
@@ -245,7 +303,6 @@ labels_2020_2 = do_characterization(labels_2020_1, documents_2020_2)
 
 
 
-"""
 print('labels_2017_1')
 print('Cantidad de estudiantes: ', arrays[7].shape)
 print('\n')
@@ -257,6 +314,7 @@ print('AUSENTES: ', labels_2017_2[0].count('AUSENTE'))
 print('DESERTORES: ', labels_2017_2[0].count('DESERTOR'))
 print('NUEVOS: ', labels_2017_2[0].count('NUEVO'))
 print('DESERTORES ANTIGUOS: ', labels_2017_2[0].count('DESERTOR-A'))
+print('GRADUADOS: ', labels_2017_2[0].count('GRADUADO'))
 print('\n')
 
 print('labels_2018_1')
@@ -266,6 +324,7 @@ print('AUSENTES: ', labels_2018_1[0].count('AUSENTE'))
 print('DESERTORES: ', labels_2018_1[0].count('DESERTOR'))
 print('NUEVOS: ', labels_2018_1[0].count('NUEVO'))
 print('DESERTORES ANTIGUOS: ', labels_2018_1[0].count('DESERTOR-A'))
+print('GRADUADOS: ', labels_2018_1[0].count('GRADUADO'))
 print('\n')
 
 print('labels_2018_2')
@@ -275,6 +334,7 @@ print('AUSENTES: ', labels_2018_2[0].count('AUSENTE'))
 print('DESERTORES: ', labels_2018_2[0].count('DESERTOR'))
 print('NUEVOS: ', labels_2018_2[0].count('NUEVO'))
 print('DESERTORES ANTIGUOS: ', labels_2018_2[0].count('DESERTOR-A'))
+print('GRADUADOS: ', labels_2018_2[0].count('GRADUADO'))
 print('\n')
 
 print('labels_2019_1')
@@ -284,6 +344,7 @@ print('AUSENTES: ', labels_2019_1[0].count('AUSENTE'))
 print('DESERTORES: ', labels_2019_1[0].count('DESERTOR'))
 print('NUEVOS: ', labels_2019_1[0].count('NUEVO'))
 print('DESERTORES ANTIGUOS: ', labels_2019_1[0].count('DESERTOR-A'))
+print('GRADUADOS: ', labels_2019_1[0].count('GRADUADO'))
 print('\n')
 
 print('labels_2019_2')
@@ -293,6 +354,7 @@ print('AUSENTES: ', labels_2019_2[0].count('AUSENTE'))
 print('DESERTORES: ', labels_2019_2[0].count('DESERTOR'))
 print('NUEVOS: ', labels_2019_2[0].count('NUEVO'))
 print('DESERTORES ANTIGUOS: ', labels_2019_2[0].count('DESERTOR-A'))
+print('GRADUADOS: ', labels_2019_2[0].count('GRADUADO'))
 print('\n')
 
 print('labels_2020_1')
@@ -302,6 +364,7 @@ print('AUSENTES: ', labels_2020_1[0].count('AUSENTE'))
 print('DESERTORES: ', labels_2020_1[0].count('DESERTOR'))
 print('NUEVOS: ', labels_2020_1[0].count('NUEVO'))
 print('DESERTORES ANTIGUOS: ', labels_2020_1[0].count('DESERTOR-A'))
+print('GRADUADOS: ', labels_2020_1[0].count('GRADUADO'))
 print('\n')
 
 print('labels_2020_2')
@@ -311,6 +374,7 @@ print('AUSENTES: ', labels_2020_2[0].count('AUSENTE'))
 print('DESERTORES: ', labels_2020_2[0].count('DESERTOR'))
 print('NUEVOS: ', labels_2020_2[0].count('NUEVO'))
 print('DESERTORES ANTIGUOS: ', labels_2020_2[0].count('DESERTOR-A'))
+print('GRADUADOS: ', labels_2020_2[0].count('GRADUADO'))
 print('\n')
 
 
@@ -320,7 +384,7 @@ print('\n')
 
 
 
-
+"""
 
 cont1 = 0
 for array in arrays:

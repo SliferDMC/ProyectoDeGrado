@@ -8,14 +8,11 @@ array2 = np.array([[1,2,3],[4,5,6],[7,8,9]])
 df = pd.DataFrame(array)
 a = np.intersect1d(array, array2).tolist()
 
-print(array2.shape)
-print(l.count(1))
-print(l.count(4))
-print(l.count(6))
+cad = ['hola','pedrin', 'como', 'va']
+cad.sort()
 
-
-
-
+coincidences1 = np.intersect1d(array, cad).tolist()
+print(coincidences1)
 
 
 
