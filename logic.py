@@ -171,7 +171,7 @@ arrays = convert_DataFrames_to_npArrays(dfs)
 for array in arrays:
     for i in range(len(array)):
         for j in range(len(array[0])):
-            array[i,j] = str(array[i,j]).replace('text:','').replace('\'','').replace(',','.').replace('number:', '')
+            array[i,j] = str(array[i,j]).replace('text:','').replace('\'','').replace(',','.').replace('number:', '').strip().replace(' ','_')
 
 dfs = convert_npArrays_to_DataFrames(arrays)
 
@@ -278,31 +278,26 @@ documents_2020_2 = arrays[0][1:,0].tolist()
 #semi_annual_location_2020_2 = arrays[0][1:,12].tolist()
 labels_2020_2 = do_characterization(labels_2020_1, documents_2020_2, programs_2020_1, semi_annual_location_2020_1, documents_2020_1)
 
+# Guardar BD resultante
+np.savetxt('../BD/BD0.txt', arrays[0], fmt='%s')
+np.savetxt('../BD/BD1.txt', arrays[1], fmt='%s')
+np.savetxt('../BD/BD2.txt', arrays[2], fmt='%s')
+np.savetxt('../BD/BD3.txt', arrays[3], fmt='%s')
+np.savetxt('../BD/BD4.txt', arrays[4], fmt='%s')
+np.savetxt('../BD/BD5.txt', arrays[5], fmt='%s')
+np.savetxt('../BD/BD6.txt', arrays[6], fmt='%s')
+np.savetxt('../BD/BD7.txt', arrays[7], fmt='%s')
 
+# Guardar resultados de la caracterización
+np.savetxt('../BD/R1.txt', labels_2017_2, fmt='%s')
+np.savetxt('../BD/R2.txt', labels_2018_1, fmt='%s')
+np.savetxt('../BD/R3.txt', labels_2018_2, fmt='%s')
+np.savetxt('../BD/R4.txt', labels_2019_1, fmt='%s')
+np.savetxt('../BD/R5.txt', labels_2019_2, fmt='%s')
+np.savetxt('../BD/R6.txt', labels_2020_1, fmt='%s')
+np.savetxt('../BD/R7.txt', labels_2020_2, fmt='%s')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Impresion de resultados
 print('labels_2017_1')
 print('Cantidad de estudiantes: ', arrays[7].shape)
 print('\n')
@@ -376,30 +371,3 @@ print('NUEVOS: ', labels_2020_2[0].count('NUEVO'))
 print('DESERTORES ANTIGUOS: ', labels_2020_2[0].count('DESERTOR-A'))
 print('GRADUADOS: ', labels_2020_2[0].count('GRADUADO'))
 print('\n')
-
-
-
-
-
-
-
-
-"""
-
-cont1 = 0
-for array in arrays:
-    for j in range(len(array[0])):
-        for i in array[:,j]:
-            if i == '-':
-                cont1 += 1    
-print(cont1)
-
-doc = 1
-for array in arrays:
-    aux = 1
-    for i in array[:,6]:
-        if i != 'COLOMBIA':
-            aux +=1
-    print(aux, doc)
-    doc += 1
-"""

@@ -1,20 +1,37 @@
 import numpy as np
 import pandas as pd
 from statistics import mode
+from matplotlib import pyplot as plt
 
 l = [1,2,3,4,5,5,5,4]
 array = np.array([1,2,3])
-array2 = np.array([[1,2,3],[4,5,6],[7,8,9]])
+array2 = np.array([[1.2345,2,3],[4,5,6],[7,8,9],['hola','pedrin', 'como']])
 df = pd.DataFrame(array)
-a = np.intersect1d(array, array2).tolist()
-
-cad = ['hola','pedrin', 'como', 'va']
-cad.sort()
-
-coincidences1 = np.intersect1d(array, cad).tolist()
-print(coincidences1)
 
 
+np.savetxt('../matriz.txt', array2, fmt='%s')
+"""
+p = np.loadtxt('matriz.txt', skiprows=0, dtype=str)
+
+print(array2)
+print(p)
+"""
+
+
+
+
+
+
+
+"""
+x = [1,2,3,4,5]
+y = [6,7,8,9,10.11]
+
+plt.plot(x, y, 'ro')
+plt.xlabel('eje x')
+plt.ylabel('eje y')
+plt.show()
+"""
 
 
 
