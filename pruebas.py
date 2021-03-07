@@ -2,14 +2,19 @@ import numpy as np
 import pandas as pd
 from statistics import mode
 from matplotlib import pyplot as plt
+from datetime import datetime
+import xlrd
 
 l = [1,2,3,4,5,5,5,4]
 array = np.array([1,2,3])
 array2 = np.array([[1.2345,2,3],[4,5,6],[7,8,9],['hola','pedrin', 'como']])
-df = pd.DataFrame(array)
+df = pd.DataFrame(array2)
+
+dt = xlrd.xldate_as_tuple(44038.0, 0)
+
+print(dt)
 
 
-np.savetxt('../matriz.txt', array2, fmt='%s')
 """
 p = np.loadtxt('matriz.txt', skiprows=0, dtype=str)
 

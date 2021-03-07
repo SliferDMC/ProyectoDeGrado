@@ -171,7 +171,7 @@ arrays = convert_DataFrames_to_npArrays(dfs)
 for array in arrays:
     for i in range(len(array)):
         for j in range(len(array[0])):
-            array[i,j] = str(array[i,j]).replace('text:','').replace('\'','').replace(',','.').replace('number:', '').strip().replace(' ','_')
+            array[i,j] = str(array[i,j]).replace('text:','').replace('\'','').replace(',','.').replace('number:', '').replace('xldate:', '').strip().replace(' ','_')
 
 dfs = convert_npArrays_to_DataFrames(arrays)
 
